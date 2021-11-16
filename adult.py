@@ -46,7 +46,7 @@ relationship_classification = {
 
 
 def prep(person):
-    result = np.array([person[0] / 100])  # age, range from 0 to 100
+    result = np.array([])
 
     if person[1] != "?":
         result = np.append(result, occupation_classification[person[1]] / 2)  # occupation, range from 0 to 2
@@ -54,7 +54,7 @@ def prep(person):
         result = np.append(result, 0.5)
 
     result = np.append(result, marital_status_classification[person[2]])
-    result = np.append(result, relationship_classification[person[3]] / 5)
+    result = np.append(result, relationship_classification[person[3]]/5)
 
     return abs(result)
 
@@ -62,11 +62,12 @@ def prep(person):
 def fonction_similarite_adult(x, y):
     delta = 1 - abs(np.apply_along_axis(prep, 2, x) - np.apply_along_axis(prep, 2, y))
 
+    delta_similar_age = 1 - (abs(x[:, :, 0] - y[:, :, 0]) / 100)
     delta_similar_occupation = ((x[:, :, 4] - y[:, :, 4]) == 0).astype(int)
     delta_similar_marital_status = ((x[:, :, 5] - y[:, :, 5]) == 0).astype(int)
     delta_similar_relationship = ((x[:, :, 6] - y[:, :, 6]) == 0).astype(int)
 
-    return np.sum(delta, 2) + delta_similar_occupation + delta_similar_marital_status + delta_similar_relationship
+    return np.sum(delta, 2) + delta_similar_age + delta_similar_occupation + delta_similar_marital_status + delta_similar_relationship
 
 
 # Fonction de dissimilarité
@@ -110,8 +111,8 @@ test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_t
 
 
 def run_adult():
-    # algorithmes.kmd([0, 1, 2], train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.kmd(train_matrice_dissimilarite, test_matrice_dissimilarite, y_train)
     # algorithmes.isomap(1, 2, train_matrice_dissimilarite, test_matrice_dissimilarite)
     # algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
     # algorithmes.hierarchique(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, y_train, y_test)
+    # algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, y_train, y_test)
