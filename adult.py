@@ -94,7 +94,7 @@ test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_t
 
 
 def run_adult():
-    algorithmes.kmd([0, 1, 2], train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.kmd(train_matrice_dissimilarite, test_matrice_dissimilarite)
     algorithmes.isomap(1, 2, train_matrice_dissimilarite, test_matrice_dissimilarite)
     algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
     algorithmes.hierarchique(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
