@@ -20,9 +20,6 @@ def knn(voisins, train_matrice, test_matrice, y_train, y_test):
     knn_train = clf.predict(train_matrice)
     knn_test = clf.predict(test_matrice)
 
-    print(knn_train)
-    print(knn_test)
-
     print("Le score de knn est " + str(clf.score(test_matrice, y_test)))
 
     # TODO ajouter algo qui verifie l'accuracy

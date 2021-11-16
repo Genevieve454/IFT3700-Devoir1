@@ -2,6 +2,7 @@ import algorithmes
 import pandas as pd
 import numpy as np
 
+from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 # Occupation classification. From physical (0) to intellectual (2)
@@ -45,9 +46,7 @@ relationship_classification = {
 
 
 def prep(person):
-    print(person)
-    result = np.array([person[0] / 100,  # age, range from 0 to 100
-                    ])  
+    result = np.array([person[0] / 100])  # age, range from 0 to 100
 
     if person[1] != "?":
         result = np.append(result, occupation_classification[person[1]] / 2)  # occupation, range from 0 to 2
@@ -55,20 +54,24 @@ def prep(person):
         result = np.append(result, 0.5)
 
     result = np.append(result, marital_status_classification[person[2]])
-    result = np.append(result, relationship_classification[person[3]]/5)
+    result = np.append(result, relationship_classification[person[3]] / 5)
 
-    print(abs(result))
     return abs(result)
 
 
 def fonction_similarite_adult(x, y):
     delta = 1 - abs(np.apply_along_axis(prep, 2, x) - np.apply_along_axis(prep, 2, y))
-    return np.average(delta, 2)
+
+    delta_similar_occupation = ((x[:, :, 4] - y[:, :, 4]) == 0).astype(int)
+    delta_similar_marital_status = ((x[:, :, 5] - y[:, :, 5]) == 0).astype(int)
+    delta_similar_relationship = ((x[:, :, 6] - y[:, :, 6]) == 0).astype(int)
+
+    return np.sum(delta, 2) + delta_similar_occupation + delta_similar_marital_status + delta_similar_relationship
 
 
 # Fonction de dissimilarité
 def fonction_dissimilarite_adult(x, y):
-    return 1 - fonction_similarite_adult(x, y)
+    return 7 - fonction_similarite_adult(x, y)
 
 
 # Fonction pour obtenir une matrice de similarite
@@ -79,12 +82,25 @@ def get_fonction_dissimilarite_adult_matrix(X, Y=None):
 
 # Jeu de données
 df = pd.read_csv("data/adult.csv")
-cts_columns = ['age', 'occupation', 'marital-status', 'relationship']
+cts_columns = ['age', 'occupation', 'marital-status', 'relationship', 'occupation-num', 'marital-status-num',
+               'relationship-num']
+
+le = preprocessing.LabelEncoder()
+le.fit(df['occupation'])
+df['occupation-num'] = le.transform(df['occupation'])
+
+le.fit(df['marital-status'])
+df['marital-status-num'] = le.transform(df['marital-status'])
+
+le.fit(df['relationship'])
+df['relationship-num'] = le.transform(df['relationship'])
+
 X = df[cts_columns]
 y = df['gender']
 
 # Division des données
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.3, test_size=0.2, stratify=y, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.05, test_size=0.02, stratify=y, random_state=0)
+
 X_train = pd.DataFrame(X_train).to_numpy()
 X_test = pd.DataFrame(X_test).to_numpy()
 
@@ -94,8 +110,8 @@ test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_t
 
 
 def run_adult():
-    algorithmes.kmd(train_matrice_dissimilarite, test_matrice_dissimilarite)
-    algorithmes.isomap(1, 2, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    algorithmes.hierarchique(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    # algorithmes.kmd([0, 1, 2], train_matrice_dissimilarite, test_matrice_dissimilarite)
+    # algorithmes.isomap(1, 2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    # algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    # algorithmes.hierarchique(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
     algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, y_train, y_test)
