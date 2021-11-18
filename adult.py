@@ -43,8 +43,9 @@ relationship_classification = {
     'Own-child': 4,
     'Other-relative': 5
 }
-
-
+"""
+On attribut des classification ci-haut à l'occupation (person[0]), au statut (person[1]) et à la relation (person[2])
+"""
 def prep(person):
     result = np.array([])
 
@@ -58,7 +59,7 @@ def prep(person):
 
     return abs(result)
 
-
+#Fonction de similarité
 def fonction_similarite_adult(x, y):
     delta = 1 - abs(np.apply_along_axis(prep, 2, x) - np.apply_along_axis(prep, 2, y))
 
@@ -86,15 +87,22 @@ df = pd.read_csv("data/adult.csv")
 cts_columns = ['age', 'occupation', 'marital-status', 'relationship', 'occupation-num', 'marital-status-num',
                'relationship-num']
 
+# Ajout d'une colonne occupation-num
 le = preprocessing.LabelEncoder()
 le.fit(df['occupation'])
 df['occupation-num'] = le.transform(df['occupation'])
 
+# Ajout d'une colonne marital-status-num
 le.fit(df['marital-status'])
 df['marital-status-num'] = le.transform(df['marital-status'])
 
+# Ajout d'une colonne relationship-num
 le.fit(df['relationship'])
 df['relationship-num'] = le.transform(df['relationship'])
+
+# Modification du gender en int
+le.fit(df['gender'])
+df['gender'] = le.transform(df['gender'])
 
 X = df[cts_columns]
 y = df['gender']
@@ -105,14 +113,28 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.05, test_
 X_train = pd.DataFrame(X_train).to_numpy()
 X_test = pd.DataFrame(X_test).to_numpy()
 
-# Creation de la matrice de dissimilarité
+# Creation des matrices de dissimilarité
 train_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_train)
 test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_train)
 
 
+# Fonction qui lance les algorithmes avec le dataset Adult
 def run_adult():
-    algorithmes.kmd(train_matrice_dissimilarite, test_matrice_dissimilarite, y_train)
-    # algorithmes.isomap(1, 2, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    # algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    # algorithmes.hierarchique(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
-    # algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, y_train, y_test)
+    print('Lancement des algorithmes avec le dataset Adult')
+
+    """kmd(nbClusters, train_matrice, test_matrice)"""
+    algorithmes.kmd(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+
+    """isomap(voisins, train_matrice, test_matrice)"""
+    algorithmes.isomap(11, train_matrice_dissimilarite, test_matrice_dissimilarite)
+
+    """pcoa(voisins, train_matrice, test_matrice)"""
+    algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
+
+    """hierarchique(clusters, train_matrice, test_matrice)"""
+    algorithmes.hierarchique(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+
+    """knn(voisins, train_matrice, test_matrice, y_train, y_test)"""
+    algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, y_train, y_test)
+
+    print('Fin du roulement des algorithmes avec le dataset Adult')
