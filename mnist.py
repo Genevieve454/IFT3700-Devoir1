@@ -22,11 +22,18 @@ def fonction_similarite_mnist(x, y):
     scoreQ2 = 1 - (abs(infosX[1] - infosY[1]) / lenQ)
     scoreQ3 = 1 - (abs(infosX[2] - infosY[2]) / lenQ)
     scoreQ4 = 1 - (abs(infosX[3] - infosY[3]) / lenQ)
-
     # 2. Score permietre :  1 - abs[{peri_1 / pixelsTotal} - {peri_2 / pixelTotal}], 0-1 encore
     scoreP = 1 - (abs(infosX[4] - infosY[4]) / infosX[5])
 
-    return (scoreQ1 + scoreQ2 + scoreQ3 + scoreQ4 + scoreP) / 5
+    # 3. Distance hamming entre x et y (combien de pixels faut changer pour passer de x à y)
+    hamDist = 0
+    for pixelX in x:
+        for pixelY in y:
+            if pixelX != pixelY:
+                hamDist+=1
+
+    # distance_euclid(quadrants_x quadrants_y) + distance_euclid(perim_x , perim_y) + distance_hamming(x,y)
+    return (scoreQ1 + scoreQ2 + scoreQ3 + scoreQ4 + scoreP + hamDist)
 
 
 # 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs , appel aussi perimetre counter
