@@ -23,8 +23,11 @@ def fonction_similarite_mnist(x, y):
     scoreQ2 = 1 - (abs(infosX[1] - infosY[1]) / lenQ)
     scoreQ3 = 1 - (abs(infosX[2] - infosY[2]) / lenQ)
     scoreQ4 = 1 - (abs(infosX[3] - infosY[3]) / lenQ)
+    scoreQ  = scoreQ1/4 + scoreQ2/4 + scoreQ3/4 + scoreQ4/4
+
     # 2. Score permietre :  1 - abs[{peri_1 / pixelsTotal} - {peri_2 / pixelTotal}], 0-1 encore
-    scoreP = 1 - (abs(infosX[4] - infosY[4]) / infosX[5])
+    scoreP = 1 - abs((infosX[4] / infosX[5]) - (infosY[4]) / infosY[5])
+
 
     # 3. Distance hamming entre x et y (combien de pixels faut changer pour passer de x à y)
     hamDist = 0
@@ -34,9 +37,8 @@ def fonction_similarite_mnist(x, y):
     hamDist = 1 - hamDist / len(x)  # score assuré entre 0-1
 
     # distance_euclid(quadrants_x quadrants_y) + distance_euclid(perim_x , perim_y) + distance_hamming(x,y)
-    # Étant On donne un poids plus grand aux scores qui varie le plus.
-    #return ((scoreQ1*0.05) + (scoreQ2*0.05) + (scoreQ3*0.05) + (scoreQ4*0.05) + (scoreP * 0.35) + (hamDist * 0.45))
-    return hamDist
+    # On donne un poids plus important aux scores qui varient le plus.
+    return (scoreQ * 0.15 + scoreP * 0.35 + hamDist * 0.5)
 
 # Fonction de dissimilarité
 def fonction_dissimilarite_mnist(x, y):
@@ -48,7 +50,7 @@ def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     dissim_Array = []
 
     for colI in range(len(X)):
-        print("loading %",colI/len(X) * 100)  # L
+        print("loading %",int(colI/len(X) * 100))  # Loading bar :) (delete it later)
         dissim_Col = []
         for ligneJ in range(len(Y)):
             dissim_Col.append(fonction_dissimilarite_mnist(X[colI], Y[ligneJ]))
@@ -57,7 +59,8 @@ def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
 
     return np.array(dissim_Array)
 
-# 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs , appel aussi perimetre counter
+
+# 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs ds chq , appel aussi perimetre counter
 def globalCounter(array):
     lenght_4 = int(len(array) / 4)
     q1 = pixelCounter(array[lenght_4*0:lenght_4*1-1])  # 1st quarter (0:25%)
@@ -70,7 +73,7 @@ def globalCounter(array):
 
     return q1, q2, q3, q4, perimeter, total
 
-# 2. Périmètre : Chq pixels noir vérifer s'il est sur frontière (au moins un noir blanc autour)
+# 2. Retourne Périmètre : Chq pixels noir vérifer s'il est sur frontière (au moins un pixel noir adjacent)
 def perimCounter(fullArray):
     linelenght = int(math.sqrt(len(fullArray)))
     perim = 0
@@ -90,14 +93,13 @@ def perimCounter(fullArray):
     return perim
 
 
-# Retourne nbr pixels noirs ds fracArray et nbr pixels ds permiètre ds fracArray
+# Retourne nbr pixels noirs ds fracArray
 def pixelCounter(fracArray):
     count = 0
     for pixel in range(len(fracArray)):
         if fracArray[pixel] == 1:
             count+=1
     return count
-
 
 
 # Jeu de données -------------
@@ -140,22 +142,13 @@ for i in range(len(x_train)):
 X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train,
                                                     train_size=0.025,test_size=0.008, stratify=y_train, random_state=0)
 
-
-# TEST (DELETE LATER
-'''test delete later
-print(Y_train[21])
-print(globalCounter(X_train[i]))
-matrix = np.reshape(X_train[21], (28,28))
-plt.imshow(matrix, cmap='gray')
-plt.show()'''
-
 # Creation des matrices de dissimilarité
 train_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_train)
 print(train_matrice_dissimilarite)
 test_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_test, X_train)
 print(test_matrice_dissimilarite)
 
-    
+
 # Fonction qui lance les algorithmes avec le dataset MNIST
 def run_mnist():
     print('Lancement des algorithmes avec le dataset MNIST')
