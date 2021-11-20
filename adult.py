@@ -37,43 +37,47 @@ marital_status_classification = {
 # Relationship classification
 relationship_classification = {
     'Unmarried': 0,
-    'Wife': 1,
+    'Wife': 2,
     'Husband': 2,
-    'Not-in-family': 3,
-    'Own-child': 4,
-    'Other-relative': 5
+    'Not-in-family': 0,
+    'Own-child': 1,
+    'Other-relative': 1
 }
+
 """
-On attribut des classification ci-haut à l'occupation (person[0]), au statut (person[1]) et à la relation (person[2])
+On attribut des classifications ci-haut à l'occupation (person[0]), au statut (person[1]) et à la relation (person[2])
 """
 def prep(person):
     result = np.array([])
 
-    if person[1] != "?":
-        result = np.append(result, occupation_classification[person[1]] / 2)  # occupation, range from 0 to 2
+    if person[2] != "?":
+        result = np.append(result, occupation_classification[person[2]] / 2)  # occupation, range from 0 to 2
     else:
         result = np.append(result, 0.5)
 
-    result = np.append(result, marital_status_classification[person[2]])
-    result = np.append(result, relationship_classification[person[3]]/5)
+    result = np.append(result, marital_status_classification[person[3]])
+    result = np.append(result, relationship_classification[person[4]] / 2)
 
     return abs(result)
 
-#Fonction de similarité
+
+# Fonction de similarité
 def fonction_similarite_adult(x, y):
     delta = 1 - abs(np.apply_along_axis(prep, 2, x) - np.apply_along_axis(prep, 2, y))
 
-    delta_similar_age = 1 - (abs(x[:, :, 0] - y[:, :, 0]) / 100)
-    delta_similar_occupation = ((x[:, :, 4] - y[:, :, 4]) == 0).astype(int)
-    delta_similar_marital_status = ((x[:, :, 5] - y[:, :, 5]) == 0).astype(int)
-    delta_similar_relationship = ((x[:, :, 6] - y[:, :, 6]) == 0).astype(int)
+    delta_similar_age = 1 - (abs(x[:, :, 0] - y[:, :, 0]) / 90)
+    delta_similar_educational = 1 - (abs(x[:, :, 1] - y[:, :, 1]) / 16)
+    delta_similar_occupation = ((x[:, :, 5] - y[:, :, 5]) == 0).astype(int)
+    delta_similar_marital_status = ((x[:, :, 6] - y[:, :, 6]) == 0).astype(int)
+    delta_similar_relationship = ((x[:, :, 7] - y[:, :, 7]) == 0).astype(int)
 
-    return np.sum(delta, 2) + delta_similar_age + delta_similar_occupation + delta_similar_marital_status + delta_similar_relationship
+    return np.sum(delta, 2) + delta_similar_age + delta_similar_educational + delta_similar_occupation + \
+           delta_similar_marital_status + delta_similar_relationship
 
 
 # Fonction de dissimilarité
 def fonction_dissimilarite_adult(x, y):
-    return 7 - fonction_similarite_adult(x, y)
+    return len(x[0, 0]) - fonction_similarite_adult(x, y)  # score parfait - score similarité
 
 
 # Fonction pour obtenir une matrice de similarite
@@ -84,8 +88,8 @@ def get_fonction_dissimilarite_adult_matrix(X, Y=None):
 
 # Jeu de données
 df = pd.read_csv("data/adult.csv")
-cts_columns = ['age', 'occupation', 'marital-status', 'relationship', 'occupation-num', 'marital-status-num',
-               'relationship-num']
+cts_columns = ['age', 'educational-num', 'occupation', 'marital-status', 'relationship', 'occupation-num',
+               'marital-status-num', 'relationship-num']
 
 # Ajout d'une colonne occupation-num
 le = preprocessing.LabelEncoder()
@@ -102,26 +106,31 @@ df['relationship-num'] = le.transform(df['relationship'])
 
 # Modification du gender en int
 le.fit(df['gender'])
+le.fit(df['gender'])
 df['gender'] = le.transform(df['gender'])
 
 X = df[cts_columns]
 y = df['gender']
 
 # Division des données
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.05, test_size=0.02, stratify=y, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.2, test_size=0.1, stratify=y, random_state=0)
 
 X_train = pd.DataFrame(X_train).to_numpy()
 X_test = pd.DataFrame(X_test).to_numpy()
 
 # Creation des matrices de dissimilarité
+print("Construction de la matrice de dissimilarité - train - en cours")
 train_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_train)
+print("Construction de la matrice de dissimilarité - train - en cours")
+print("Construction de la matrice de dissimilarité - test - en cours")
 test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_train)
+print("Construction de la matrice de dissimilarité - test - fin")
 
 
 # Fonction qui lance les algorithmes avec le dataset Adult
 def run_adult():
     print('Lancement des algorithmes avec le dataset Adult')
-
+    #
     """kmd(nbClusters, train_matrice, test_matrice)"""
     algorithmes.kmd(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
