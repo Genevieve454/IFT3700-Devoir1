@@ -27,13 +27,22 @@ def fonction_similarite_mnist(x, y):
 
     # 3. Distance hamming entre x et y (combien de pixels faut changer pour passer de x à y)
     hamDist = 0
-    for pixelX in x:
-        for pixelY in y:
-            if pixelX != pixelY:
-                hamDist+=1
+    for i in range(len(x)):
+        if x[i] != y[i]:
+            hamDist+=1
+    hamDist = hamDist / len(x)  # score assuré entre 0-1
 
     # distance_euclid(quadrants_x quadrants_y) + distance_euclid(perim_x , perim_y) + distance_hamming(x,y)
-    return (scoreQ1 + scoreQ2 + scoreQ3 + scoreQ4 + scoreP + hamDist)
+    #print("q1", scoreQ1)
+    #print("q2", scoreQ2)
+    #print("q3", scoreQ3)
+    #print("q4", scoreQ4)
+    #print("p", scoreP)
+    #print("hamDist only:" , hamDist)
+    #print("_--------------------_")
+
+    # Étant On donne un poids plus grand aux scores qui varie le plus.
+    return ((scoreQ1*0.05) + (scoreQ2*0.05) + (scoreQ3*0.05) + (scoreQ4*0.05) + (scoreP * 0.35) + (hamDist * 0.45))
 
 
 # 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs , appel aussi perimetre counter
