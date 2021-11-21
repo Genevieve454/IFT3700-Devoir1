@@ -9,8 +9,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 
-# Fonction de similarité
-# Retourne similarité (0-1) entre x et y (TODO fix last formula)
+# Fonction de similarité : Retourne similarité (0-1) entre x et y 
 def fonction_similarite_mnist(x, y):
 
     # 0. Calculer le nombre de pixels dans chq quadrants  et le ratio perimeter/pixels total de x et y
@@ -38,19 +37,20 @@ def fonction_similarite_mnist(x, y):
 
     # distance_euclid(quadrants_x quadrants_y) + distance_euclid(perim_x , perim_y) + distance_hamming(x,y)
     # On donne un poids plus important aux scores qui varient le plus.
-    return (scoreQ * 0.15 + scoreP * 0.35 + hamDist * 0.5)
+    return (scoreQ * 0.15 + scoreP * 0.25 + hamDist * 0.60)
+
 
 # Fonction de dissimilarité
 def fonction_dissimilarite_mnist(x, y):
     return 1 - fonction_similarite_mnist(x, y)
 
-# Fonction pour obtenir une matrice de similarite (manuellement, car pas 100% encore compris code demo)
+# Fonction pour obtenir une matrice de similarite (manuellement) 
 def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     Y = X if Y is None else Y
     dissim_Array = []
 
     for colI in range(len(X)):
-        print("loading %",int(colI/len(X) * 100))  # Loading bar :) (delete it later)
+        #print("loading %",int(colI/len(X) * 100))  # Too long? Use loading bar
         dissim_Col = []
         for ligneJ in range(len(Y)):
             dissim_Col.append(fonction_dissimilarite_mnist(X[colI], Y[ligneJ]))
@@ -60,7 +60,8 @@ def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     return np.array(dissim_Array)
 
 
-# 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs ds chq , appel aussi perimetre counter
+# Pixels  : Split tab en 4 sous-tab et compter # pixels blancs (1) ds chq ,
+# appel aussi perimetre counter
 def globalCounter(array):
     lenght_4 = int(len(array) / 4)
     q1 = pixelCounter(array[lenght_4*0:lenght_4*1-1])  # 1st quarter (0:25%)
@@ -73,15 +74,15 @@ def globalCounter(array):
 
     return q1, q2, q3, q4, perimeter, total
 
-# 2. Retourne Périmètre : Chq pixels noir vérifer s'il est sur frontière (au moins un pixel noir adjacent)
+# Retourne Périmètre : Chq pixels blanc(1) vérifer s'il est sur frontière (au moins un pixel noir adjacent)
 def perimCounter(fullArray):
     linelenght = int(math.sqrt(len(fullArray)))
     perim = 0
 
     for pixel in range(len(fullArray)):
         if (fullArray[pixel] == 1):
-            # périmètre : on vérifie que chaque pixel adjacent, si on tombe sur un 0 --> on est  sur  frontière
-            # Note : Attention aux pixel trop proche d'extérimités (out of bounds)
+            # Verifier chq pixel adjacent, if we meet a 0 --> sur frontiere 
+            # !Attention aux pixel trop proche d'extérimités (out of bounds)!
             if pixel<(len(fullArray)-1) and (fullArray[pixel + 1] == 0):
                 perim += 1
             elif (fullArray[pixel - 1] == 0):
@@ -102,10 +103,9 @@ def pixelCounter(fracArray):
     return count
 
 
-# Jeu de données -------------
+# Jeu de données 
 
 # 1. Importer
-print("Initialisation des données (csv) ...")
 data = open('data/mnist.csv')
 csv_file = csv.reader(data)
 data_points = []
@@ -142,11 +142,9 @@ for i in range(len(x_train)):
 X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train,
                                                     train_size=0.025,test_size=0.008, stratify=y_train, random_state=0)
 
-# Creation des matrices de dissimilarité
+# Creation des matrices de dissimilarité (attendre environ 1-2 minutes selon puissance pc)
 train_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_train)
-print(train_matrice_dissimilarite)
 test_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_test, X_train)
-print(test_matrice_dissimilarite)
 
 
 # Fonction qui lance les algorithmes avec le dataset MNIST
@@ -154,21 +152,18 @@ def run_mnist():
     print('Lancement des algorithmes avec le dataset MNIST')
 
     """kmd(nbClusters, train_matrice, test_matrice)"""
-    algorithmes.kmd(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.kmd(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """isomap(voisins, train_matrice, test_matrice)"""
-    algorithmes.isomap(11, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.isomap(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """pcoa(voisins, train_matrice, test_matrice)"""
-    algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.pcoa(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """hierarchique(clusters, train_matrice, test_matrice)"""
-    algorithmes.hierarchique(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.hierarchique(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """knn(voisins, train_matrice, test_matrice, y_train, y_test)"""
-    algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, Y_train, Y_test)
+    algorithmes.knn(4, train_matrice_dissimilarite, test_matrice_dissimilarite, Y_train, Y_test)
 
     print('Fin du roulement des algorithmes avec le dataset mnist')
-
-run_mnist()
-print("done")

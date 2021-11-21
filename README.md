@@ -11,3 +11,4 @@ Dépendences:
 Pour rouler les tests: lancer la classe main.py
 
 Le programme peut prendre du temps à rouler à cause de l'échantillon du dataset choisi.
+Pour MNIST, vous pouvez utiliser la loading bar en commentaire à la ligne 53 mnist.py .
