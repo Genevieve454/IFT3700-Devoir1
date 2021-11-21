@@ -1,4 +1,5 @@
 import algorithmes
+#import paraFinder
 import math
 import pandas as pd
 import numpy as np
@@ -9,8 +10,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 
-# Fonction de similarité
-# Retourne similarité (0-1) entre x et y (TODO fix last formula)
+# Fonction de similarité : Retourne similarité (0-1) entre x et y 
 def fonction_similarite_mnist(x, y):
 
     # 0. Calculer le nombre de pixels dans chq quadrants  et le ratio perimeter/pixels total de x et y
@@ -38,7 +38,8 @@ def fonction_similarite_mnist(x, y):
 
     # distance_euclid(quadrants_x quadrants_y) + distance_euclid(perim_x , perim_y) + distance_hamming(x,y)
     # On donne un poids plus important aux scores qui varient le plus.
-    return (scoreQ * 0.15 + scoreP * 0.35 + hamDist * 0.5)
+    return (scoreQ * 0.15 + scoreP * 0.25 + hamDist * 0.60)
+
 
 # Fonction de dissimilarité
 def fonction_dissimilarite_mnist(x, y):
@@ -50,7 +51,7 @@ def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     dissim_Array = []
 
     for colI in range(len(X)):
-        print("loading %",int(colI/len(X) * 100))  # Loading bar :) (delete it later)
+        #print("loading %",int(colI/len(X) * 100))  # Loading bar (use it to know program progress)
         dissim_Col = []
         for ligneJ in range(len(Y)):
             dissim_Col.append(fonction_dissimilarite_mnist(X[colI], Y[ligneJ]))
@@ -142,11 +143,13 @@ for i in range(len(x_train)):
 X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train,
                                                     train_size=0.025,test_size=0.008, stratify=y_train, random_state=0)
 
-# Creation des matrices de dissimilarité
+# Creation des matrices de dissimilarité (attendre environ 1-2 minutes selon puissance pc)
 train_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_train)
-print(train_matrice_dissimilarite)
 test_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_test, X_train)
-print(test_matrice_dissimilarite)
+
+# Trouver les paramètre pour nos algorithmes avec la classe paraFinder
+# paraFinder.kmeanPredict(X_train)        # best k is 5
+# paraFinder.kNeighbors(X_train, Y_train) # best k is 4
 
 
 # Fonction qui lance les algorithmes avec le dataset MNIST
@@ -154,21 +157,20 @@ def run_mnist():
     print('Lancement des algorithmes avec le dataset MNIST')
 
     """kmd(nbClusters, train_matrice, test_matrice)"""
-    algorithmes.kmd(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.kmd(5, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """isomap(voisins, train_matrice, test_matrice)"""
-    algorithmes.isomap(11, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.isomap(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """pcoa(voisins, train_matrice, test_matrice)"""
-    algorithmes.pcoa(1, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.pcoa(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """hierarchique(clusters, train_matrice, test_matrice)"""
-    algorithmes.hierarchique(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
+    algorithmes.hierarchique(4, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
     """knn(voisins, train_matrice, test_matrice, y_train, y_test)"""
-    algorithmes.knn(11, train_matrice_dissimilarite, test_matrice_dissimilarite, Y_train, Y_test)
+    algorithmes.knn(4, train_matrice_dissimilarite, test_matrice_dissimilarite, Y_train, Y_test)
 
     print('Fin du roulement des algorithmes avec le dataset mnist')
 
 run_mnist()
-print("done")
