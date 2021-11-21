@@ -121,7 +121,7 @@ X_test = pd.DataFrame(X_test).to_numpy()
 # Creation des matrices de dissimilarité
 print("Construction de la matrice de dissimilarité - train - en cours")
 train_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_train)
-print("Construction de la matrice de dissimilarité - train - en cours")
+print("Construction de la matrice de dissimilarité - train - fin")
 print("Construction de la matrice de dissimilarité - test - en cours")
 test_matrice_dissimilarite = get_fonction_dissimilarite_adult_matrix(X_test, X_train)
 print("Construction de la matrice de dissimilarité - test - fin")
@@ -130,7 +130,7 @@ print("Construction de la matrice de dissimilarité - test - fin")
 # Fonction qui lance les algorithmes avec le dataset Adult
 def run_adult():
     print('Lancement des algorithmes avec le dataset Adult')
-    #
+
     """kmd(nbClusters, train_matrice, test_matrice)"""
     algorithmes.kmd(2, train_matrice_dissimilarite, test_matrice_dissimilarite)
 
