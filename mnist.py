@@ -1,5 +1,4 @@
 import algorithmes
-#import paraFinder
 import math
 import pandas as pd
 import numpy as np
@@ -45,13 +44,13 @@ def fonction_similarite_mnist(x, y):
 def fonction_dissimilarite_mnist(x, y):
     return 1 - fonction_similarite_mnist(x, y)
 
-# Fonction pour obtenir une matrice de similarite (manuellement, car pas 100% encore compris code demo)
+# Fonction pour obtenir une matrice de similarite (manuellement) 
 def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     Y = X if Y is None else Y
     dissim_Array = []
 
     for colI in range(len(X)):
-        #print("loading %",int(colI/len(X) * 100))  # Loading bar (use it to know program progress)
+        #print("loading %",int(colI/len(X) * 100))  # Too long? Use loading bar
         dissim_Col = []
         for ligneJ in range(len(Y)):
             dissim_Col.append(fonction_dissimilarite_mnist(X[colI], Y[ligneJ]))
@@ -61,7 +60,8 @@ def get_fonction_dissimilarite_mnist_matrix(X, Y=None):
     return np.array(dissim_Array)
 
 
-# 1. # Pixels  : Split tab en 4 sous-tab et compter # pixels noirs ds chq , appel aussi perimetre counter
+# Pixels  : Split tab en 4 sous-tab et compter # pixels blancs (1) ds chq ,
+# appel aussi perimetre counter
 def globalCounter(array):
     lenght_4 = int(len(array) / 4)
     q1 = pixelCounter(array[lenght_4*0:lenght_4*1-1])  # 1st quarter (0:25%)
@@ -74,15 +74,15 @@ def globalCounter(array):
 
     return q1, q2, q3, q4, perimeter, total
 
-# 2. Retourne Périmètre : Chq pixels noir vérifer s'il est sur frontière (au moins un pixel noir adjacent)
+# Retourne Périmètre : Chq pixels blanc(1) vérifer s'il est sur frontière (au moins un pixel noir adjacent)
 def perimCounter(fullArray):
     linelenght = int(math.sqrt(len(fullArray)))
     perim = 0
 
     for pixel in range(len(fullArray)):
         if (fullArray[pixel] == 1):
-            # périmètre : on vérifie que chaque pixel adjacent, si on tombe sur un 0 --> on est  sur  frontière
-            # Note : Attention aux pixel trop proche d'extérimités (out of bounds)
+            # Verifier chq pixel adjacent, if we meet a 0 --> sur frontiere 
+            # !Attention aux pixel trop proche d'extérimités (out of bounds)!
             if pixel<(len(fullArray)-1) and (fullArray[pixel + 1] == 0):
                 perim += 1
             elif (fullArray[pixel - 1] == 0):
@@ -103,10 +103,9 @@ def pixelCounter(fracArray):
     return count
 
 
-# Jeu de données -------------
+# Jeu de données 
 
 # 1. Importer
-print("Initialisation des données (csv) ...")
 data = open('data/mnist.csv')
 csv_file = csv.reader(data)
 data_points = []
@@ -147,10 +146,6 @@ X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train,
 train_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_train)
 test_matrice_dissimilarite = get_fonction_dissimilarite_mnist_matrix(X_test, X_train)
 
-# Trouver les paramètre pour nos algorithmes avec la classe paraFinder
-# paraFinder.kmeanPredict(X_train)        # best k is 5
-# paraFinder.kNeighbors(X_train, Y_train) # best k is 4
-
 
 # Fonction qui lance les algorithmes avec le dataset MNIST
 def run_mnist():
@@ -172,5 +167,3 @@ def run_mnist():
     algorithmes.knn(4, train_matrice_dissimilarite, test_matrice_dissimilarite, Y_train, Y_test)
 
     print('Fin du roulement des algorithmes avec le dataset mnist')
-
-run_mnist()
